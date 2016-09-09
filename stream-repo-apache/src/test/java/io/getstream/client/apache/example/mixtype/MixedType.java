@@ -1,9 +1,10 @@
 package io.getstream.client.apache.example.mixtype;
 
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.getstream.client.apache.StreamClientImpl;
 import io.getstream.client.StreamClient;
+import io.getstream.client.apache.StreamClientImpl;
 import io.getstream.client.config.ClientConfiguration;
 import io.getstream.client.exception.StreamClientException;
 import io.getstream.client.model.activities.BaseActivity;
@@ -12,6 +13,9 @@ import io.getstream.client.service.FlatActivityServiceImpl;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 /**
  * The following example creates a new custom activity and push it into the feed.
@@ -20,41 +24,38 @@ public class MixedType {
 
     public static void main(String[] args) throws IOException, StreamClientException {
         /**
-         * Enable wire logging programmatically.
-         */
-        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
-        System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
-        System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http", "DEBUG");
-
-        /**
          * Create client using api key and secret key.
          */
-        StreamClient streamClient = new StreamClientImpl(new ClientConfiguration(), "nfq26m3qgfyp",
-                                                                "245nvvjm49s3uwrs5e4h3gadsw34mnwste6v3rdnd69ztb35bqspvq8kfzt9v7h2");
+        StreamClient streamClient = new StreamClientImpl(new ClientConfiguration(), "rnwrjh796xy2",
+                "2447cm9eqbheykk8a384ahuzthwddtms55f8tuump6t6uvkguurw8etkfy8qu69p");
 
         /**
          * Get the reference to a feed (either new or existing one).
          */
-        Feed feed = streamClient.newFeed("user", "9");
+        Feed feed = streamClient.newFeed("user", "10");
+        String foreignId = "volley:1";
+        Date now = new Date();
 
         FlatActivityServiceImpl<Match> matchActivityService = feed.newFlatActivityService(Match.class);
 
         VolleyballMatch volley = new VolleyballMatch();
         volley.setActor("Me");
-        volley.setObject("Message");
+        volley.setObject("Volleyball Message");
         volley.setTarget("");
-        volley.setTo(Arrays.asList("user:1"));
+//        volley.setTo(Arrays.asList("user:1"));
         volley.setVerb("verb");
 
         volley.setNrOfBlocked(1);
         volley.setNrOfServed(1);
+        volley.setForeignId(foreignId);
+        volley.setTime(now);
         matchActivityService.addActivity(volley);
 
         FootballMatch football = new FootballMatch();
         football.setActor("Me");
-        football.setObject("Message");
+        football.setObject("Football Message");
         football.setTarget("");
-        football.setTo(Arrays.asList("user:1"));
+//        football.setTo(Arrays.asList("user:1"));
         football.setVerb("verb");
 
         football.setNrOfPenalty(2);
@@ -63,6 +64,31 @@ public class MixedType {
 
         /**
          * Try to retrieve a mixed type of activities.
+         */
+        for (Match match : matchActivityService.getActivities().getResults()) {
+            System.out.println(match);
+//            feed.deleteActivity(match.getId());
+        }
+
+        /**
+         * Update volleyball
+         */
+        VolleyballMatch newVolley = new VolleyballMatch();
+        newVolley.setActor("Me");
+        newVolley.setObject("Updated Volleyball Message");
+        newVolley.setTarget("");
+      //  newVolley.setTo(Arrays.asList("user:1"));
+        newVolley.setVerb("verb");
+
+        newVolley.setForeignId(foreignId);
+        newVolley.setTime(now);
+        newVolley.setNrOfServed(1000);
+        newVolley.setNrOfBlocked(2000);
+
+        List<Match> volleyballMatches = Collections.singletonList((Match) newVolley);
+        matchActivityService.updateActivities(volleyballMatches);
+        /**
+         * Try to retrieve a mixed type of activities after updating
          */
         for (Match match : matchActivityService.getActivities().getResults()) {
             System.out.println(match);
